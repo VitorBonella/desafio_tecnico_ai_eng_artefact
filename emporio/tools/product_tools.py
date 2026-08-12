@@ -15,6 +15,7 @@ def build_product_tools(repo: CatalogRepository) -> list[BaseTool]:
         preco_maximo: float = 0,
         preco_minimo: float = 0,
     ) -> str:
+        """Busca produtos no catálogo por texto, categoria e faixa de preço."""
         encontrados = repo.search(
             texto=texto or None,
             categoria=categoria or None,
@@ -48,6 +49,7 @@ def build_product_tools(repo: CatalogRepository) -> list[BaseTool]:
 
     @tool
     def consultar_preco(nome_produto: str) -> str:
+        """Consulta o preço e os detalhes de um produto pelo nome."""
         encontrados = repo.buscar_por_nome(nome_produto, limite=5)
         if not encontrados:
             return (
@@ -66,6 +68,7 @@ def build_product_tools(repo: CatalogRepository) -> list[BaseTool]:
 
     @tool
     def listar_promocoes() -> str:
+        """Lista os produtos que estão em promoção no momento."""
         produtos = repo.promocoes_ativas()
         if not produtos:
             return "Não há promoções ativas no momento."
@@ -73,6 +76,7 @@ def build_product_tools(repo: CatalogRepository) -> list[BaseTool]:
 
     @tool
     def listar_categorias() -> str:
+        """Lista as categorias de produtos disponíveis no catálogo."""
         categorias = repo.categorias()
         if not categorias:
             return "Catálogo sem categorias cadastradas."

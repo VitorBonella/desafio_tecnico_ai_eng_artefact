@@ -10,6 +10,7 @@ def build_order_tools(repo: OrderRepository) -> list[BaseTool]:
 
     @tool
     def consultar_status_pedido(pedido_id: str) -> str:
+        """Consulta o status de um pedido pelo número do pedido."""
         pedido = repo.get(pedido_id)
         if pedido is None:
             return (
@@ -21,6 +22,7 @@ def build_order_tools(repo: OrderRepository) -> list[BaseTool]:
 
     @tool
     def buscar_pedidos_do_cliente(nome_ou_telefone: str) -> str:
+        """Busca os pedidos de um cliente pelo nome ou telefone."""
         pedidos = repo.por_cliente(nome_ou_telefone)
         if not pedidos:
             return (

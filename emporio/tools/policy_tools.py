@@ -7,6 +7,7 @@ from langchain_core.vectorstores import VectorStoreRetriever
 def build_policy_tool(retriever: VectorStoreRetriever) -> BaseTool:
     @tool
     def consultar_politicas(pergunta: str) -> str:
+        """Consulta o manual de políticas da loja para responder à pergunta."""
         docs = retriever.invoke(pergunta)
         if not docs:
             return (
