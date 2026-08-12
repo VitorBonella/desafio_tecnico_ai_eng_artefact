@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Empório da Música — Atendimento</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --walnut: #2c221a;
+      --walnut-soft: #4a3b2e;
+      --paper: #f4efe6;
+      --paper-card: #fbf8f2;
+      --brass: #b07d2b;
+      --brass-deep: #7a5416;
+      --ink: #2c221a;
+      --ink-soft: #6c5f52;
+      --line: #e2d9c9;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: var(--walnut);
+      color: var(--paper);
+      padding: 18px 22px;
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      border-bottom: 3px solid var(--brass);
+    }
+    header .name {
+      font-family: "Fraunces", Georgia, serif;
+      font-weight: 600;
+      font-size: 22px;
+      letter-spacing: 0.3px;
+    }
+    header .tag {
+      font-size: 13px;
+      color: #c9bba9;
+    }
+    main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-width: 760px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .msg { display: flex; flex-direction: column; max-width: 78%; }
+    .msg .who {
+      font-size: 12px;
+      color: var(--ink-soft);
+      margin-bottom: 4px;
+    }
+    .bubble {
+      padding: 12px 15px;
+      border-radius: 14px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      font-size: 15px;
+    }
+    .msg.user { align-self: flex-end; align-items: flex-end; }
+    .msg.user .bubble {
+      background: var(--walnut);
+      color: var(--paper);
+      border-bottom-right-radius: 4px;
+    }
+    .msg.bot { align-self: flex-start; }
+    .msg.bot .bubble {
+      background: var(--paper-card);
+      border: 1px solid var(--line);
+      border-bottom-left-radius: 4px;
+    }
+    .msg.bot .who { color: var(--brass-deep); font-weight: 500; }
+    .typing .bubble { color: var(--ink-soft); font-style: italic; }
+    footer {
+      border-top: 1px solid var(--line);
+      background: var(--paper-card);
+      padding: 14px 22px;
+    }
+    .composer {
+      max-width: 760px;
+      margin: 0 auto;
+      display: flex;
+      gap: 10px;
+    }
+    #input {
+      flex: 1;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      font: inherit;
+      background: #fff;
+    }
+    #input:focus {
+      outline: 2px solid var(--brass);
+      outline-offset: 1px;
+      border-color: var(--brass);
+    }
+    #send {
+      padding: 0 20px;
+      border: none;
+      border-radius: 12px;
+      background: var(--brass);
+      color: #fff;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    #send:hover { background: var(--brass-deep); }
+    #send:disabled { opacity: 0.5; cursor: default; }
+  </style>
+</head>
+<body>
+  <header>
+    <span class="name">Empório da Música</span>
+    <span class="tag">atendimento · Campo Grande/MS</span>
+  </header>
+
+  <main id="chat">
+    <div class="msg bot">
+      <span class="who">Maestro</span>
+      <div class="bubble">Olá! Sou o Maestro, do atendimento da Empório da Música. Posso ajudar com produtos, preços, status de pedido e as políticas da loja. Em que posso ajudar?</div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="composer">
+      <input id="input" type="text" placeholder="Escreva sua mensagem…" autocomplete="off" />
+      <button id="send">Enviar</button>
+    </div>
+  </footer>
+
+  <script>
+    const sessionId = "web-" + Math.random().toString(36).slice(2);
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("input");
+    const send = document.getElementById("send");
+
+    function addMessage(text, who) {
+      const wrap = document.createElement("div");
+      wrap.className = "msg " + (who === "user" ? "user" : "bot");
+      const label = document.createElement("span");
+      label.className = "who";
+      label.textContent = who === "user" ? "Você" : "Maestro";
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.textContent = text;
+      wrap.append(label, bubble);
+      chat.appendChild(wrap);
+      chat.scrollTop = chat.scrollHeight;
+      return wrap;
+    }
+
+    async function sendMessage() {
+      const text = input.value.trim();
+      if (!text) return;
+      addMessage(text, "user");
+      input.value = "";
+      send.disabled = true;
+
+      const typing = addMessage("digitando…", "bot");
+      typing.classList.add("typing");
+
+      try {
+        const res = await fetch("/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session_id: sessionId, message: text }),
+        });
+        const data = await res.json();
+        typing.remove();
+        addMessage(data.reply ?? "Desculpe, algo deu errado.", "bot");
+      } catch (err) {
+        typing.remove();
+        addMessage("Não consegui responder agora. Tente novamente em instantes.", "bot");
+      } finally {
+        send.disabled = false;
+        input.focus();
+      }
+    }
+
+    send.addEventListener("click", sendMessage);
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+    input.focus();
+  </script>
+</body>
+</html>
